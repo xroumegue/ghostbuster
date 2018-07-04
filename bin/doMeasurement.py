@@ -119,11 +119,12 @@ PERF_CMD = "perf \
 
 
 cmd_usecase = None
-LOOP=3
+LOOP=10
 try:
     # Set the process group ID
     setpgrp()
     for loop in range(LOOP):
+        log.info("Measurement iteration {}".format(loop))
         for usecase in USECASES:
             delay = str((randint(DELAY_MIN, DELAY_MAX) * DELAY_SCALE) + DELAY_OFFSET)
             log.info("Exercising usecase {} with {} ms of delay".format(usecase['name'], delay))
