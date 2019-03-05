@@ -41,7 +41,7 @@ class FireHouse():
             try_connection = True
             while try_connection:
                 self.log.debug("Waiting for a connection")
-                self.server.settimeout(30.0)
+#                self.server.settimeout(30.0)
                 (client, address) = self.server.accept()
                 self.log.debug("Got a connection from {:s} - {:d}".format(
                     address[0],
