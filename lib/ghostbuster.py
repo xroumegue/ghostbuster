@@ -11,29 +11,11 @@ from logging import getLogger
 from os import kill, getpid
 from signal import SIGKILL
 import shlex
+import config
 
-
-EVENTS = [
-    "r11",
-    "r10",
-    "r12",
-    "r42",
-    "r48",
-    "r72"
-]
-CYCLES="r11"
-
-#CYCLES = "cycles"
-#EVENTS = ["cycles",
-#        "l1d.replacement",
-#        "l2_lines_out.demand_clean",
-#        "LLC-load-misses",
-#        "cache-misses",
-#        "L1-dcache-load-misses"
-#    ]
+CYCLES="cycles"
 
 DELAY = '0'
-PERIOD = '500'
 MEASUREMENT_DURATION = 3
 
 PERF_CMD = "perf \
@@ -66,7 +48,7 @@ class Ghost():
     """
         A Ghost ?
     """
-    def __init__(self, pid, user, cmd, pcpu):
+    def __init__(self, cfg, pid, user, cmd, pcpu):
         self.pid = pid
         self.user = user
         self.cmd = cmd.strip()
@@ -74,6 +56,8 @@ class Ghost():
         self.log = getLogger()
         self.proc = None
         self.watchdog = None
+        self.events = cfg.EVENTS
+        self.cfg = cfg
 
     def __str__(self):
         _str = "Ghost:\n"
@@ -113,7 +97,7 @@ class Ghost():
                 return None
 
             self.log.info("Scanning process {:s} - {:s}".format(self.pid, self.cmd))
-            cmd_str = PERF_CMD.format(DELAY, PERIOD, ','.join(EVENTS), self.pid)
+            cmd_str = PERF_CMD.format(DELAY, self.cfg.INTERVAL, ','.join(self.events), self.pid)
             self.log.debug("Executing {:s}".format(cmd_str))
             self.proc = Popen(shlex.split(cmd_str), stderr=None, stdout=PIPE)
             proc_status = self.proc.poll()
@@ -144,7 +128,7 @@ class Ghost():
                 values = msg_str.split(CSV_SEPARATOR)
                 if timestamp \
                         and timestamp != values[0] \
-                        and len(data.keys()) == len(EVENTS):
+                        and len(data.keys()) == len(self.events):
                     # A measurement is complete, use it
                     valid = True
                     for key in data.keys():
@@ -182,12 +166,13 @@ class GhostBuster():
     """
         A GhostBuster seeking for ghosts
     """
-    def __init__(self, port=12345, addr='127.0.0.1'):
+    def __init__(self, port=12345, addr='127.0.0.1', cfg=None):
         self.port = port
         self.addr = addr
         self.log = getLogger()
         self.connection = socket()
         self.current = getpid()
+        self.cfg = cfg
 
     def identify(self, nr_candidates=NR_PS):
         """
@@ -205,7 +190,7 @@ class GhostBuster():
         blacklist = ['perf']
         for ps_line in ps_cmd.stdout.split(b'\n')[:nr_candidates]:
             ps_line_str = ps_line.decode('utf-8').strip()
-            ghost = Ghost(*ps_line_str.split(','))
+            ghost = Ghost(self.cfg, *ps_line_str.split(','))
             if not ghost.cmd in blacklist and int(ghost.pid) != self.current:
                 ghosts.append(ghost)
 
@@ -214,6 +199,10 @@ class GhostBuster():
     def shoot(self, ghost):
         self.log.info("\n*********>\nShooting {:s} - {:s}\n*********>".format(ghost.cmd, ghost.pid))
         ghost.kill()
+
+    def load(self, cfg):
+        self.log.info("loading config {}".format(cfg))
+        self.cfg = cfg
 
     def hunt(self):
         """

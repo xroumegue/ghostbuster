@@ -9,7 +9,9 @@ import logging
 
 RUNPATH = dirname(realpath(__file__))
 sys.path.append(join(RUNPATH, "../lib"))
+sys.path.append(join(RUNPATH, "../etc"))
 from ghostbuster import GhostBuster
+import config
 
 def main():
     """
@@ -43,7 +45,24 @@ def main():
         default=logging.INFO,
         help='Be verbose...')
 
+    argparser.add_argument(
+        '-m',
+        '--machine',
+        choices=config.Config.MACHINES,
+        default=config.Config.MACHINE_DEFAULT,
+        required=True,
+        help='Machine')
+
     args = argparser.parse_args()
+
+    cfgs = {
+        'i6950x' : config.i6950x,
+        'a72' : config.a72,
+    }
+
+    cfg = cfgs[args.machine]
+
+
 
     #
     # Logger
@@ -58,6 +77,7 @@ def main():
     # Do the real job
     #
     agent = GhostBuster(port=args.port, addr=args.address)
+    agent.load(cfg)
     agent.hunt()
 
 if __name__ == '__main__':

@@ -1,8 +1,14 @@
 #! /usr/bin/env python3
 from os import scandir, linesep
-from os.path import join, basename, splitext
+from os.path import join, basename, splitext, dirname, join, realpath
+import sys
 
 from argparse import ArgumentParser, FileType
+
+RUNPATH = dirname(realpath(__file__))
+sys.path.append(join(RUNPATH, "../lib"))
+sys.path.append(join(RUNPATH, "../etc"))
+import config
 
 argparser = ArgumentParser(
     description='Scikit learn SVM spectre attack seeker')
@@ -15,12 +21,19 @@ argparser.add_argument(
     required=True,
     help='Folder collecting the reports')
 
+argparser.add_argument(
+    '-m',
+    '--machine',
+    choices=config.Config.MACHINES,
+    default=config.Config.MACHINE_DEFAULT,
+    required=True,
+    help='Machine')
 
 args = argparser.parse_args()
 
 csv_sep = ','
 
-CYCLES="r11"
+CYCLES="cycles"
 
 #
 # perf stat CSV fields:
@@ -81,9 +94,9 @@ def scandir_for_report(directory):
         if item.is_dir():
                 scandir_for_report(item.path)
 
-scandir_for_report(args.rootdir)
+scandir_for_report(join(args.rootdir, args.machine))
 
-filename_out = 'dataset.txt'
+filename_out = 'dataset-{}.txt'.format(args.machine)
 fout = open(filename_out, 'w')
 
 events_export = sorted(events)
