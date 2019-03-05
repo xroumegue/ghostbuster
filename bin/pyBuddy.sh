@@ -3,7 +3,7 @@
 # Neither undefined variables (-u) or error in command (-e) are allowed
 set -eu;
 
-PYTHON3="/usr/bin/python3.6"
+PYTHON3="/usr/bin/python3"
 PREFIX="$(pwd)/venv"
 HELP=false
 VERBOSE=false
@@ -32,15 +32,15 @@ function check_env {
     if [ ! -x "$PYTHON3" ];
     then
         echo "$PYTHON3" does not exit or is not executable
-        echo 'sudo apt install python3.6'
+        echo 'sudo apt install python3'
         exit -1
     fi
 
     PYTHON3_VERSION=$($PYTHON3 --version |& cut -d ' ' -f2 | cut -d '.' -f1,2)
-    if [[ ! $PYTHON3_VERSION =~ 3\.6 ]]
+    if [[ ! $PYTHON3_VERSION =~ 3\.7 ]]
     then
-        echo Only python 3.6 version is supported.
-        echo 'sudo apt install python3.6'
+        echo Only python 3.7 version is supported.
+        echo 'sudo apt install python3.7'
         exit -1
     else
         echo python version $PYTHON3_VERSION is supported.
@@ -113,6 +113,7 @@ packages=(
 "pandas"
 "scikit-learn"
 "scipy"
+"matplotlib"
 )
 
 for package in "${packages[@]}"; do
