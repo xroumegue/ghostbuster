@@ -41,7 +41,7 @@ The script is running different usecases, such as:
 
 [Linux kernel perf tool](https://perf.wiki.kernel.org/index.php/Tutorial) is used to collect the dataset features.
 
-A measurement is completed every 2.5s for the whole run duration, starting the measurement with a random offset.
+A measurement is completed every 2.5s(a72)/100ms(i6950x) for the whole run duration, starting the measurement with a random offset.
 
 All measurements are repeated 10 times.
 
@@ -62,6 +62,8 @@ optional arguments:
   -h, --help            show this help message and exit
   -r ROOTDIR, --rootdir ROOTDIR
                         Folder collecting the reports
+  -m {a72,i6950x}, --machine {a72,i6950x}
+                        Machine
 ```
 
 ## Training the model
@@ -154,10 +156,13 @@ optional arguments:
   -a ADDRESS, --address ADDRESS
                         Firehouse ip address
   -v, --verbose         Be verbose...
+  -m {a72,i6950x}, --machine {a72,i6950x}
+                        Machine
+
 ```
 
 so, getting ghostbuster agent hunting for ghost is as simple as:
 
 ```console
-$bin/ghostBuster.py --address 10.168.1.100
+$bin/ghostBuster.py --address 10.168.1.100 --machine i6950x
 ```
